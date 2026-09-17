@@ -1,0 +1,221 @@
+CSC 484 - Module 5
+Tic-Tac-Toe with NumPy, Inheritance, and Polymorphism
+Pseudocode
+
+START PROGRAM
+
+IMPORT Tkinter tools for the graphical user interface
+IMPORT NumPy for the 3x3 game board and board checks
+
+CREATE parent class Player
+    STORE player name
+    STORE player symbol
+    DEFINE choose_move method that subclasses must replace
+
+CREATE subclass HumanPlayer FROM Player
+    OVERRIDE choose_move
+    RECEIVE NumPy board, row, and column from GUI click
+    IF selected square is empty:
+        RETURN selected row and column
+    OTHERWISE:
+        RETURN no move
+
+CREATE subclass WOPRPlayer FROM Player
+    OVERRIDE choose_move
+    RECEIVE NumPy board
+
+    IF WOPR has a winning move:
+        RETURN that move
+
+    IF human player has a winning move next turn:
+        RETURN move that blocks the human
+
+    IF center square is empty:
+        RETURN center square
+
+    IF human owns a corner and opposite corner is empty:
+        RETURN opposite corner
+
+    CHECK corners in a fixed order
+    IF an empty corner is found:
+        RETURN that corner
+
+    CHECK edge squares
+    IF an empty edge is found:
+        RETURN that edge
+
+    RETURN no move
+
+    TO FIND A WINNING MOVE:
+        FOR each row from 0 through 2:
+            FOR each column from 0 through 2:
+                IF square is empty:
+                    TEMPORARILY place supplied symbol there
+                    CHECK board for a win
+                    RESTORE square to empty
+
+                    IF the temporary move created a win:
+                        RETURN that row and column
+
+        RETURN no winning move
+
+CREATE class WOPRTicTacToe
+
+    WHEN program starts:
+        STORE main application window
+        APPLY Windows 95-style appearance
+        CREATE 3x3 NumPy array filled with blank spaces
+        CREATE HumanPlayer named Dr. Falken with symbol X
+        CREATE WOPRPlayer named WOPR with symbol O
+        SET human as starting player
+        SET consecutive draw counter to 0
+        SET game-over flag to False
+        SET WOPR-thinking flag to False
+        CREATE storage for nine GUI buttons
+        CREATE menu bar
+        DISPLAY startup screen
+
+    DISPLAY startup screen:
+        CLEAR previous screen
+        DISPLAY WOPR terminal panel
+        DISPLAY "WOPR GAME SYSTEM"
+        DISPLAY "Hello, Dr. Falken."
+        DISPLAY "Would you like to play a game?"
+        DISPLAY TIC-TAC-TOE selection
+        DISPLAY THERMO-NUCLEAR WAR selection with red strike-through
+        DISPLAY EXIT selection
+
+    IF THERMO-NUCLEAR WAR is selected:
+        DISPLAY warning message
+        RETURN to startup screen
+
+    IF TIC-TAC-TOE is selected:
+        START new game
+
+    START new game:
+        CREATE new blank 3x3 NumPy board
+        SET current player to human
+        SET game-over flag to False
+        SET WOPR-thinking flag to False
+        CLEAR previous screen
+        DISPLAY game title and status
+
+        FOR each row from 0 through 2:
+            FOR each column from 0 through 2:
+                CREATE clickable square
+                CONNECT click to matching row and column
+                STORE button reference
+
+        DISPLAY selected-position label
+        DISPLAY New Game, Game Menu, and Exit buttons
+
+    WHEN HUMAN CLICKS A SQUARE:
+        IF game is over OR WOPR is thinking:
+            IGNORE click
+
+        CALL HumanPlayer choose_move using clicked row and column
+
+        IF move is invalid:
+            DISPLAY occupied-square message
+            RETURN
+
+        APPLY human move to NumPy board and GUI
+        DISPLAY selected [row, column]
+
+        IF human has won:
+            END game and announce Dr. Falken as winner
+            RESET consecutive draw counter
+            RETURN
+
+        IF board is a draw:
+            HANDLE draw
+            RETURN
+
+        SET WOPR-thinking flag to True
+        DISPLAY "WOPR (O): Evaluating board..."
+        TEMPORARILY disable open board buttons
+        WAIT briefly
+        CALL WOPR move
+
+    WHEN WOPR MOVES:
+        CALL WOPRPlayer choose_move using NumPy board
+
+        IF no move exists:
+            CHECK for draw
+            RETURN
+
+        APPLY WOPR move to NumPy board and GUI
+        DISPLAY WOPR selected [row, column]
+
+        IF WOPR has won:
+            END game and announce WOPR as winner
+            RESET consecutive draw counter
+            RETURN
+
+        IF board is a draw:
+            HANDLE draw
+            RETURN
+
+        SET WOPR-thinking flag to False
+        RE-ENABLE all still-empty squares
+        DISPLAY "Dr. Falken (X): Select a square"
+
+    APPLY MOVE:
+        STORE player symbol in NumPy board[row, column]
+        UPDATE matching GUI square
+        DISABLE used square
+        DISPLAY player name and selected [row, column]
+
+    CHECK FOR WINNER:
+        FOR each row:
+            IF every NumPy value equals supplied symbol:
+                RETURN True
+
+        FOR each column:
+            IF every NumPy value equals supplied symbol:
+                RETURN True
+
+        BUILD first diagonal from [0,0], [1,1], [2,2]
+        IF every value equals supplied symbol:
+            RETURN True
+
+        BUILD second diagonal from [0,2], [1,1], [2,0]
+        IF every value equals supplied symbol:
+            RETURN True
+
+        RETURN False
+
+    CHECK FOR DRAW:
+        USE NumPy to determine whether every square is nonblank
+        RETURN True if board is full
+        OTHERWISE RETURN False
+
+    HANDLE DRAW:
+        SET game-over flag to True
+        ADD 1 to consecutive draw counter
+        DISABLE board
+
+        IF consecutive draws is less than 3:
+            DISPLAY draw message
+            START another game
+        OTHERWISE:
+            START WOPR analysis
+
+    START WOPR ANALYSIS AFTER THIRD CONSECUTIVE DRAW:
+        CLEAR game screen
+        DISPLAY terminal-style analysis area
+        CREATE list of WOPR analysis messages
+        SET analysis line number to 0
+        WRITE one line at a time using timed callbacks
+
+    FINAL WOPR MESSAGE:
+        DISPLAY "Dr. Falken, this game is much like Thermo-Nuclear War..."
+        DISPLAY "There is no winner."
+
+    WHEN player returns from analysis:
+        RESET consecutive draw counter
+        DISPLAY startup screen
+
+START Tkinter main application loop
+
+END PROGRAM
